@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --navy:#0A1F44; --navy-2:#102d5e; --saffron:#FF9933; }
+* { box-sizing:border-box; }
+body { margin:0; color:#fff; background:var(--navy); font-family:Arial, Helvetica, sans-serif; }
+button, input { font:inherit; }
+.card { @apply rounded-3xl border border-white/10 bg-white/[.07] shadow-2xl shadow-black/20 backdrop-blur; }
+.muted { @apply text-slate-300; }
+.pill { @apply rounded-full px-3 py-1 text-xs font-bold; }
