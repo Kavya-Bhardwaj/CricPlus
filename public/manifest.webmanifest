@@ -1,3 +1,13 @@
 {
-  "name":"CricPulse India","short_name":"CricPulse","start_url":"/","display":"standalone","background_color":"#0A1F44","theme_color":"#0A1F44","icons":[]
+  "name": "CricPulse India",
+  "short_name": "CricPulse",
+  "description": "Matchday control room for India-first cricket tracking",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070d1f",
+  "theme_color": "#091127",
+  "icons": [],
+  "categories": ["sports", "news"]
 }

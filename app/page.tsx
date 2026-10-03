@@ -1,10 +1,18 @@
-"use client";
-import Link from "next/link";
-import { Bell, Home, Search, Settings, Star, Trophy } from "lucide-react";
-import { useState } from "react";
-import { matches, players, type Match } from "@/lib/data";
+import { HomeClient } from "@/app/components/home-client";
+import { getMatches, getProviderStatus, getPulseInsights } from "@/lib/cricket";
+import { demoPlayers } from "@/lib/data";
 
-function Badge({status}:{status:Match["status"]}) { return <span className={`pill ${status==="live"?"bg-red-500":"bg-white/15"}`}>{status.toUpperCase()}</span>; }
-function MatchCard({m,featured=false}:{m:Match;featured?:boolean}) { const [reminded,setReminded]=useState(false); return <div className={`card p-5 ${featured?"md:p-7":""}`}><div className="flex items-center justify-between"><Badge status={m.status}/><span className="muted text-xs">{m.time}</span></div><div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3"><div><div className="text-sm muted">{m.teamA}</div><strong className="text-2xl">{m.shortA}</strong>{m.scoreA&&<div className="text-sm text-saffron">{m.scoreA}</div>}</div><div className="text-center text-slate-400">vs</div><div className="text-right"><div className="text-sm muted">{m.teamB}</div><strong className="text-2xl">{m.shortB}</strong>{m.scoreB&&<div className="text-sm text-saffron">{m.scoreB}</div>}</div></div>{m.result&&<p className="mt-4 text-sm text-green-300">{m.result}</p>}<div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4"><span className="muted text-xs">{m.venue}</span>{m.status==="upcoming"&&<button onClick={()=>setReminded(!reminded)} className={`rounded-full px-3 py-2 text-xs font-bold ${reminded?"bg-green-500":"bg-saffron text-navy"}`}><Bell size={14} className="mr-1 inline"/>{reminded?"Set":"Remind Me"}</button>}</div></div>; }
-function Nav() { return <nav className="fixed bottom-0 left-0 right-0 z-10 border-t border-white/10 bg-navy/95 p-3 backdrop-blur"><div className="mx-auto flex max-w-3xl justify-around"><Link href="/" className="text-center text-xs text-saffron"><Home className="mx-auto mb-1" size={20}/>Home</Link><Link href="/stars" className="text-center text-xs muted"><Star className="mx-auto mb-1" size={20}/>My Stars</Link><Link href="/standings" className="text-center text-xs muted"><Trophy className="mx-auto mb-1" size={20}/>Tables</Link><Link href="/settings" className="text-center text-xs muted"><Settings className="mx-auto mb-1" size={20}/>More</Link></div></nav>; }
-export default function HomePage(){ const [query,setQuery]=useState(""); const suggestions=query?players.filter(p=>p.name.toLowerCase().includes(query.toLowerCase())):[]; return <main className="min-h-screen pb-24"><header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6"><Link href="/" className="text-2xl font-black tracking-tight">Cric<span className="text-saffron">Pulse</span></Link><div className="relative flex items-center gap-3"><div className="hidden items-center rounded-full border border-white/10 bg-white/5 px-3 py-2 md:flex"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search players" className="w-40 bg-transparent pl-2 text-sm outline-none"/>{suggestions.length>0&&<div className="absolute right-10 top-12 z-20 w-56 rounded-xl bg-slate-900 p-2">{suggestions.map(p=><Link key={p.id} href={`/players/${p.id}`} className="block rounded-lg p-2 text-sm hover:bg-white/10">{p.name}</Link>)}</div>}</div><Link href="/settings"><Settings size={21}/></Link></div></header><section className="mx-auto max-w-6xl px-5"><div className="mb-8"><p className="mb-2 text-sm font-bold uppercase tracking-[.25em] text-saffron">Good evening, cricket fan</p><h1 className="text-4xl font-black md:text-6xl">The Game Day <span className="text-saffron">Pulse.</span></h1><p className="muted mt-3 max-w-xl">Live scores, India-first coverage, and the players you never want to miss.</p></div><div className="mb-10"><div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-bold">India Match Center</h2><span className="pill bg-green-500/20 text-green-300">● LIVE NOW</span></div><div className="grid gap-4 md:grid-cols-2">{matches.filter(m=>m.featured).map(m=><MatchCard key={m.id} m={m} featured/>)}</div></div><div className="grid gap-10 lg:grid-cols-[1.25fr_.75fr]"><section><div className="mb-4 flex justify-between"><h2 className="text-xl font-bold">My Team India</h2><span className="muted text-sm">View all</span></div><div className="space-y-4">{matches.slice(1).map(m=><MatchCard key={m.id} m={m}/>)}</div></section><section><div className="mb-4 flex justify-between"><h2 className="text-xl font-bold">Global Cricket Hub</h2><span className="muted text-sm">Explore</span></div><div className="space-y-4">{matches.filter(m=>!m.featured).map(m=><MatchCard key={m.id} m={m}/>)}</div></section></div></section><Nav/></main>; }
+export default async function HomePage() {
+  const matchesResponse = await getMatches();
+  const pulseResponse = await getPulseInsights(matchesResponse.data);
+  const providerStatus = getProviderStatus();
+
+  return (
+    <HomeClient
+      matchesResponse={matchesResponse}
+      pulseResponse={pulseResponse}
+      stars={demoPlayers.slice(0, 3)}
+      providerMode={providerStatus.mode}
+    />
+  );
+}

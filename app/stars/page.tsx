@@ -1,4 +1,68 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowLeft, Bell, Star } from "lucide-react";
-import { players } from "@/lib/data";
-export default function StarsPage(){ return <main className="min-h-screen px-5 pb-16"><div className="mx-auto max-w-4xl"><Link href="/" className="muted inline-flex gap-2 py-7"><ArrowLeft size={18}/>Back home</Link><p className="text-sm font-bold uppercase tracking-[.25em] text-saffron">Personalized player hub</p><h1 className="mt-2 text-4xl font-black">My Star Zone <Star className="inline text-saffron" fill="currentColor"/></h1><p className="muted mt-3">Your followed players, form, and instant milestone alerts.</p><div className="mt-8 grid gap-4 md:grid-cols-2">{players.map(p=><div className="card p-5" key={p.id}><div className="flex items-center gap-4"><div className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-saffron to-orange-700 text-xl font-black text-navy">{p.initials}</div><div><Link href={`/players/${p.id}`} className="text-xl font-bold hover:text-saffron">{p.name}</Link><p className="muted text-sm">{p.role} · {p.country}</p></div><button className="ml-auto rounded-full bg-white/10 p-3" aria-label={`Enable alerts for ${p.name}`}><Bell size={17}/></button></div><div className="mt-5 grid grid-cols-3 gap-2">{p.stats.map(s=><div className="rounded-2xl bg-black/15 p-3" key={s.label}><div className="muted text-[10px]">{s.label}</div><div className="mt-1 font-bold">{s.value}</div></div>)}</div><div className="mt-4"><span className="muted text-xs">RECENT FORM</span><div className="mt-2 flex gap-2">{p.form.map((v,i)=><span key={i} className="rounded-lg bg-saffron/15 px-2 py-1 text-xs font-bold text-saffron">{v}</span>)}</div></div></div>)}</div></div></main>; }
+import { Bell, BellOff } from "lucide-react";
+import { demoPlayers } from "@/lib/data";
+import { usePersistentState } from "@/lib/local-state";
+
+export default function StarsPage() {
+  const [followed, setFollowed] = usePersistentState<string[]>("cp_followed", demoPlayers.map((p) => p.id));
+  const [alerts, setAlerts] = usePersistentState<string[]>("cp_alerts", demoPlayers.slice(0, 2).map((p) => p.id));
+
+  const toggleFollow = (id: string) =>
+    setFollowed((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+
+  const toggleAlert = (id: string) =>
+    setAlerts((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
+
+  return (
+    <div className="stack-xl">
+      <section className="panel">
+        <p className="meta-line">Demo-enabled alerts with local persistence</p>
+        <h2>My Stars</h2>
+        <p className="meta-line">Follow players and keep milestone notifications on for the ones you track closely.</p>
+      </section>
+
+      {demoPlayers.map((player) => {
+        const isFollowed = followed.includes(player.id);
+        const hasAlert = alerts.includes(player.id);
+
+        return (
+          <article className="panel" key={player.id}>
+            <div className="hero-head">
+              <div>
+                <p className="meta-line">{player.role}</p>
+                <Link href={`/players/${player.id}`}>
+                  <h3>{player.name}</h3>
+                </Link>
+              </div>
+              <div className="star-pill">
+                <span>{player.initials}</span>
+                <small>{player.currentForm}</small>
+              </div>
+            </div>
+
+            <div className="mini-grid">
+              {player.keyStats.map((stat) => (
+                <div key={stat.label} className="mini-cell">
+                  <small>{stat.label}</small>
+                  <strong>{stat.value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div className="hero-head" style={{ marginTop: "0.75rem" }}>
+              <button className="action-btn" onClick={() => toggleFollow(player.id)} aria-pressed={isFollowed}>
+                {isFollowed ? "Following" : "Follow"}
+              </button>
+              <button className="action-btn" onClick={() => toggleAlert(player.id)} aria-pressed={hasAlert}>
+                {hasAlert ? <Bell size={16} /> : <BellOff size={16} />}
+                {hasAlert ? "Alerts On" : "Alerts Off"}
+              </button>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+}

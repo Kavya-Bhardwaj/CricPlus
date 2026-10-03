@@ -1,3 +1,30 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-export default function Standings(){return <main className="min-h-screen px-5"><div className="mx-auto max-w-3xl"><Link href="/" className="muted inline-flex gap-2 py-7"><ArrowLeft size={18}/>Back home</Link><h1 className="text-4xl font-black">Standings</h1><p className="muted mt-2">Demo tournament table — connect your cricket API for live rankings.</p><div className="card mt-8 overflow-hidden"><div className="grid grid-cols-5 bg-white/10 p-4 text-xs font-bold text-slate-300"><span># TEAM</span><span>P</span><span>W</span><span>L</span><span>PTS</span></div>{[["India","6","5","1","10"],["Australia","6","4","2","8"],["England","6","3","3","6"],["South Africa","6","2","4","4"]].map((r,i)=><div className="grid grid-cols-5 border-t border-white/10 p-4" key={r[0]}><span>{i+1}. {r[0]}</span><span>{r[1]}</span><span className="text-green-300">{r[2]}</span><span>{r[3]}</span><span className="font-bold text-saffron">{r[4]}</span></div>)}</div></div></main>}
+import { getStandings } from "@/lib/cricket";
+
+export default async function StandingsPage() {
+  const standings = await getStandings();
+
+  return (
+    <div className="stack-xl">
+      <section className="panel">
+        <p className="meta-line">{standings.demo ? "Demo table" : "Live standings"}</p>
+        <h2>Tables</h2>
+        <p className="meta-line">Updated: {new Date(standings.lastUpdated).toLocaleString()}</p>
+      </section>
+
+      <section className="panel" aria-label="Standings table">
+        <div className="timeline">
+          {standings.data.map((row, index) => (
+            <article key={row.team}>
+              <p>
+                {index + 1}. {row.team}
+              </p>
+              <small>
+                P {row.played} · W {row.won} · L {row.lost} · PTS {row.points} · NRR {row.nrr}
+              </small>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
