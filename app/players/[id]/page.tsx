@@ -1,4 +1,14 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { notFound } from "next/navigation";
 import { getPlayer } from "@/lib/cricket";
-export default async function PlayerPage({params}:{params:Promise<{id:string}>}){ const {id}=await params; const p=await getPlayer(id); if(!p) return <main className="p-8">Player not found</main>; return <main className="min-h-screen px-5"><div className="mx-auto max-w-3xl"><Link href="/stars" className="muted inline-flex gap-2 py-7"><ArrowLeft size={18}/>Back to stars</Link><div className="card p-7"><div className="flex flex-wrap items-center gap-5"><div className="grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-saffron to-orange-700 text-3xl font-black text-navy">{p.initials}</div><div><p className="text-sm font-bold uppercase tracking-widest text-saffron">{p.country}</p><h1 className="text-4xl font-black">{p.name}</h1><p className="muted mt-1">{p.role}</p></div><button className="ml-auto rounded-full bg-saffron px-5 py-3 font-bold text-navy">Follow Player</button></div><h2 className="mt-10 text-xl font-bold">Career snapshot</h2><div className="mt-4 grid grid-cols-3 gap-3">{p.stats.map(s=><div className="rounded-2xl bg-white/10 p-4" key={s.label}><div className="muted text-xs">{s.label}</div><strong className="text-2xl">{s.value}</strong></div>)}</div><h2 className="mt-10 text-xl font-bold">Recent form</h2><div className="mt-4 flex gap-3">{p.form.map((v,i)=><div key={i} className="rounded-2xl border border-saffron/30 px-4 py-3 text-saffron">{v}</div>)}</div></div></div></main>; }
+import { PlayerClient } from "./player-client";
+
+export default async function PlayerPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const response = await getPlayer(id);
+
+  if (!response.data) {
+    notFound();
+  }
+
+  return <PlayerClient player={response.data} demo={response.demo} />;
+}

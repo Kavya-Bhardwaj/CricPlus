@@ -1,47 +1,115 @@
-# CricPulse India
+# CricPulse India — Matchday Control Room
 
-A free, student-friendly personalized cricket PWA starter built with Next.js App Router, TypeScript and Tailwind CSS.
+CricPulse India is a mobile-first cricket web app built with Next.js App Router + TypeScript + Tailwind CSS. It runs in **demo mode by default** and upgrades to live provider data when server-side API credentials are added.
 
-## Run in VS Code
+## 1) Windows + VS Code quick start
 
-1. Install Node.js 20 LTS or newer.
-2. Clone the repository and open it in VS Code.
-3. In the VS Code terminal run:
+Open **PowerShell** inside VS Code and run commands one-by-one:
 
-```bash
+```powershell
 npm install
-cp .env.example .env.local
+Copy-Item .env.example .env.local
 npm run dev
 ```
 
-4. Open `http://localhost:3000`.
+Open: `http://localhost:3000`
 
-The app works immediately in **demo mode** without any API key or Supabase credentials. Demo matches and players are in `lib/data.ts`.
+### Production build check
 
-## Optional free integrations
-
-### Cricket API
-Set these in `.env.local`:
-
-```env
-CRICKET_API_BASE_URL=your_provider_base_url
-CRICKET_API_KEY=your_key
+```powershell
+npm run build
 ```
 
-Keep API calls in server route handlers. Never put the provider key in a `NEXT_PUBLIC_` variable. Replace the adapter in `lib/cricket.ts` with the response mapping for your chosen free provider.
+## 2) Test on your phone (same Wi-Fi)
 
-### Supabase
-Create a free Supabase project, copy the project URL and anon key into `.env.local`, then run `supabase/schema.sql` in the Supabase SQL editor. Auth can use email/password and Google from Supabase Dashboard > Authentication > Providers. The current UI remains usable in demo mode when these variables are empty; connect the forms to Supabase when you want real accounts.
+1. Keep `npm run dev` running.
+2. Find your laptop IP:
 
-### Reminders and cron
-`/api/reminders` is the persistence hook and `/api/cron` is a secured Vercel Cron foundation. Add a `CRON_SECRET` environment variable in production. Browser notifications require HTTPS (localhost is allowed) and user permission. A true scheduled push system additionally needs stored push subscriptions and a server-side Web Push provider/library.
+```powershell
+ipconfig
+```
 
-## Deploy to Vercel free tier
+3. Use your IPv4 address and open on phone browser:
 
-Import the GitHub repository into Vercel, set the same environment variables, and deploy. The free tier is suitable for a personal project, subject to provider/Vercel limits. Add a `vercel.json` cron schedule only after connecting a real reminder store.
+```text
+http://<YOUR_IPV4>:3000
+```
 
-## Useful commands
+Example: `http://192.168.1.8:3000`
 
-`npm run dev` — local development  
-`npm run build` — production build check  
-`npm start` — run production output
+> Ensure both phone and laptop are on the same Wi-Fi network and firewall allows port 3000.
+
+## 3) Environment variables
+
+`.env.example`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+CRICKET_API_BASE_URL=
+CRICKET_API_KEY=
+CRON_SECRET=
+```
+
+### Live cricket provider setup (free tier)
+
+- Set `CRICKET_API_BASE_URL` and `CRICKET_API_KEY` in `.env.local`.
+- API key remains server-only. Never expose it via `NEXT_PUBLIC_*`.
+- Provider mapping lives in `lib/cricket.ts` inside:
+  - `mapProviderMatch`
+  - `mapProviderPlayer`
+  - `mapProviderStandings`
+
+If your provider response shape is different, update only those mappers.
+
+## 4) Demo mode behavior
+
+When live credentials are missing/invalid:
+
+- App remains fully usable with fallback demo data from `lib/data.ts`.
+- UI shows demo/live state and last-updated timestamps.
+- Reminders and player alert/follow toggles persist in browser localStorage.
+
+## 5) API routes
+
+- `GET /api/matches?status=live|upcoming|finished&scope=india`
+- `GET /api/search?q=<term>`
+- `GET /api/players/[id]`
+- `GET /api/players/search?q=<term>`
+- `GET /api/standings`
+- `GET /api/status`
+- `GET/POST /api/reminders`
+- `GET /api/cron` (Authorization header with `CRON_SECRET`)
+
+## 6) Supabase (optional)
+
+Run `supabase/schema.sql` in Supabase SQL editor.
+
+Helpers are provided:
+
+- `lib/supabase/browser.ts`
+- `lib/supabase/server.ts`
+
+When not configured, app gracefully stays in local demo mode.
+
+## 7) PWA notes
+
+- Manifest: `public/manifest.webmanifest`
+- Service worker base: `public/sw.js`
+- Install prompt behavior varies by browser.
+- Web Push limitations: requires HTTPS, user permission, stored subscriptions, and server-side push delivery.
+
+## 8) Deploy to Vercel
+
+1. Import repo into Vercel.
+2. Set same env vars from `.env.local`.
+3. Deploy.
+4. Add cron schedule only after production reminder delivery is implemented.
+
+## 9) Useful commands
+
+```bash
+npm run dev
+npm run build
+npm start
+```
